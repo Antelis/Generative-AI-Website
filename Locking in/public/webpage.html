@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Network Visualization</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" href="C:\Users\Andres\OneDrive - Instituto Tecnologico y de Estudios Superiores de Monterrey\!Tec stuff\Cuarto semestre\Reto\Locking in\public\favicon.ico" type="image/x-icon">
+</head>
+<body class="body">
+    <header class="header">
+        <nav>
+            <div class="menu-wrapper">
+                <ul class="main_menu">
+                    <li class="text">
+                        <button class="button">
+                            <span>Work</span>
+                        </button>
+                    </li>
+                    <li class="text">
+                        <button class="button">
+                            <span>Insights</span>
+                        </button>
+                    </li>
+                    <li class="text">
+                        <button class="button">
+                            <span>About</span>
+                        </button>
+                    </li>
+                    <li class="text">
+                        <button class="button wizeline">
+                            <span>Wizeline</span>
+                        </button>
+                    </li>
+                    <li class="text">
+                        <button class="button">
+                            <span>Careers</span>
+                        </button>
+                    </li>
+                    <li class="text">
+                        <button class="button">
+                            <span>Academy</span>
+                        </button>
+                    </li>
+                    <li class="text">
+                        <button class="button">
+                            <span>Contact</span>
+                        </button>
+                    </li>
+                    <li class="text">
+                        <button class="button">
+                            <span>English</span>
+                        </button>
+                    </li>
+                </ul>
+            </div>
+            <button class="mobile-menu" onclick="toggleMenu()">
+                <span>&#9776;</span> <!-- Hamburger icon -->
+            </button>
+        </nav>
+    </header>
+
+    
+
+    <main>
+        <h1>Hello, Guest</h1>
+
+        <div class="container">
+            <input type="text" id="searchInput" placeholder="Search node...">
+            <button id="searchButton" onclick="searchNode()">Search</button>
+        </div>
+        
+
+
+
+        <div id="mynetwork"></div>
+
+        <h2 id="eventSpanHeading"></h2>
+        <pre id="eventSpanContent"></pre>
+
+        <div id="myModal" class="modal">
+            <img class="modal-content" id="img01">
+        </div>
+    </main>
+
+    <footer>
+        <p>© Copyright Wizeline 2024</p>
+    </footer>
+
+    <!-- Updated script source paths -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis-network.min.js"></script>
+    <script src="graph.js"></script> <!-- Assuming graph.js is in the src directory -->
+    <script src="integrations.js"></script> <!-- Assuming integrations.js is in the src directory -->
+
+    <script>
+        // JavaScript code here
+    </script>
+</body>
+</html>

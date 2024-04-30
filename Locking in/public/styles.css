@@ -1,0 +1,150 @@
+#mynetwork {
+  width: 100%;
+  height: 700px;
+  border: 1px solid lightgray;
+  background-color: rgb(208, 232, 240);
+}
+
+.overlayButton {
+background-color: #4CAF50;
+border: none;
+color: white;
+padding: 10px 20px;
+text-align: center;
+text-decoration: none;
+display: inline-block;
+font-size: 16px;
+margin: 4px 2px;
+cursor: pointer;
+border-radius: 5px;
+transition-duration: 0.4s;
+min-width: 100px;
+}
+
+.overlayButton:hover {
+background-color: #45a049;
+}
+
+#resetButton {
+min-width: 100px;
+}
+
+html, body {
+margin: 0;
+padding: 0;
+background-color: #1c1f24;
+color: aliceblue;
+height: 100%;
+overflow: hidden;
+}
+
+.header {
+width: 100%;
+height: 70px;
+background-color: #222529;
+}
+
+.main {
+display: flex;
+flex-direction: column;
+height: calc(100vh - 70px);
+overflow-y: auto;
+}
+
+.main_menu {
+display: flex;
+justify-content: space-between;
+align-items: center;
+margin: 0 auto;
+padding: 0 10%;
+list-style-type: none;
+height: 70px;
+}
+
+.button {
+border: none;
+background-color: transparent;
+color: aliceblue;
+cursor: pointer;
+text-decoration: none;
+font-weight: lighter;
+padding: 10px 20px;
+}
+
+.button.wizeline {
+font-size: 20px;
+font-weight: bold;
+}
+
+.button:not(.wizeline) {
+font-weight: lighter;
+}
+
+a:visited,
+a:active,
+a:link {
+color: aqua;
+}
+
+a:hover {
+color: red;
+}
+
+.mobile-menu {
+display: none;
+background: transparent;
+border: none;
+color: aliceblue;
+cursor: pointer;
+font-size: 20px;
+padding: 10px;
+}
+
+@media screen and (max-width: 768px) {
+.mobile-menu {
+    display: block;
+}
+
+.main_menu {
+    display: none;
+    position: absolute;
+    top: 70px;
+    left: 0;
+    width: 100%;
+    background-color: #222529;
+    z-index: 1000;
+}
+
+.main_menu.show {
+    display: block;
+}
+
+.main_menu li {
+    width: 100%;
+    text-align: center;
+}
+}
+.container {
+    text-align: center; /* Center aligns the content within the container */
+}
+
+#searchInput {
+    width: 50%;
+    display: inline-block;
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    background-color: white;
+    color: #333;
+}
+
+#searchButton {
+    display: inline-block;
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    background-color: #007bff;
+    color: white;
+    cursor: pointer;
+}
+
