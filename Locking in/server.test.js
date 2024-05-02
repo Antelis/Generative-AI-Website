@@ -69,7 +69,7 @@ describe('DELETE /deleteNode', () => {
 
     it('deletes a node by ID from the database', async () => {
         // Define the node ID to delete
-        const nodeIdToDelete = 1; // Assuming the node ID to delete is 1
+        const nodeIdToDelete = 50; // Assuming the node ID to delete is 1
 
         const response = await request(app)
             .delete('/deleteNode')

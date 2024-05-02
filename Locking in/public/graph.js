@@ -1,6 +1,8 @@
 var nodes = null;
 var edges = null;
 var network = null;
+// Sample similarity function (adjust based on your data)
+
 
 function draw() {
   var container = document.getElementById("mynetwork");
@@ -72,18 +74,70 @@ function draw() {
     
     
 
+    
+    
+
       // Create nodes and connect random pairs
-      const edgesData = [];
-      const connectedPairs = new Set();
-      while (connectedPairs.size < nodes.length) {
-        const from = Math.floor(Math.random() * nodes.length);
-        const to = Math.floor(Math.random() * nodes.length);
-        if (from !== to && !connectedPairs.has(`${from},${to}`) && !connectedPairs.has(`${to},${from}`)) {
-          edgesData.push({ from: from + 1, to: to + 1, color: { color: 'black' } }); // Set edge color to black
-          connectedPairs.add(`${from},${to}`);
-          connectedPairs.add(`${to},${from}`);
-        }
+      // Create edges based on similarity in name, URL, and content type
+const edgesData = [];
+const lastIndex = nodes.length - 1;
+
+nodes.forEach((node1, index1) => {
+  let maxSimilarity = 0;
+  let mostSimilarNodeIndex = -1;
+  
+  // Compare node1 with all other nodes to find the most similar node
+  nodes.forEach((node2, index2) => {
+    if (index1 !== index2) {
+      const nameSimilarity = similarity(node1.label, node2.label);
+      const urlSimilarity = similarity(node1.referenceURL, node2.referenceURL);
+      const contentTypeSimilarity = node1.contentType === node2.contentType ? 1 : 0;
+      
+      // Calculate total similarity as a weighted sum
+      const totalSimilarity = 0.4 * nameSimilarity + 0.4 * urlSimilarity + 0.2 * contentTypeSimilarity;
+      
+      if (totalSimilarity > maxSimilarity) {
+        maxSimilarity = totalSimilarity;
+        mostSimilarNodeIndex = index2;
       }
+    }
+  });
+  
+  // Connect node1 to the most similar node found, or to the last node if no match is found
+  const toNodeIndex = mostSimilarNodeIndex !== -1 ? mostSimilarNodeIndex : lastIndex;
+  edgesData.push({ from: index1 + 1, to: toNodeIndex + 1, color: { color: 'black' } }); // Set edge color to black
+});
+
+// Helper function to calculate similarity between two strings (using Levenshtein distance)
+function similarity(s1, s2) {
+  const maxLength = Math.max(s1.length, s2.length);
+  const distance = levenshteinDistance(s1, s2);
+  return 1 - distance / maxLength;
+}
+
+// Function to calculate Levenshtein distance between two strings
+function levenshteinDistance(s1, s2) {
+  const dp = Array.from(Array(s1.length + 1), () => Array(s2.length + 1).fill(0));
+
+  for (let i = 0; i <= s1.length; i++) {
+    for (let j = 0; j <= s2.length; j++) {
+      if (i === 0) {
+        dp[i][j] = j;
+      } else if (j === 0) {
+        dp[i][j] = i;
+      } else {
+        dp[i][j] = Math.min(
+          dp[i - 1][j - 1] + (s1[i - 1] !== s2[j - 1] ? 1 : 0),
+          dp[i - 1][j] + 1,
+          dp[i][j - 1] + 1
+        );
+      }
+    }
+  }
+
+  return dp[s1.length][s2.length];
+}
+
 
       // Construct the data object for vis.js
       const data = {
@@ -93,25 +147,32 @@ function draw() {
 
       const options = {
         nodes: {
-          borderWidth: 4,
-          size: 30,
+          borderWidth: 2,
+          size: 20,
           color: {
-            border: "#222222",
-            background: "#666666",
+            border: "#444",
+            background: "#888",
           },
-          font: { color: "#000000" },
+          font: { color: "#333", size: 14 },
         },
         edges: {
-          color: "#002385", // Set the color of all edges to black
+          color: { color: "#007bff", opacity: 0.5 },
+          smooth: { type: "continuous" },
         },
         physics: {
           enabled: true,
           stabilization: {
-            enabled: true,
-            iterations: 10000000,
+            iterations: 1000, // Increase stabilization iterations
+            fit: false, // Disable fitting after stabilization
           },
         },
+        interaction: {
+          hover: true,
+        },
+        // Set initial zoom level and position
       };
+      
+      
 
       network = new vis.Network(container, data, options);
 
@@ -145,7 +206,7 @@ function showModal(imageSrc, titleContent, textContent, url) {
   // Create a square container for the content
   var contentContainer = document.createElement("div");
   contentContainer.style.position = "absolute";
-  contentContainer.style.top = "50%";
+  contentContainer.style.top = "60%";
   contentContainer.style.left = "50%";
   contentContainer.style.transform = "translate(-50%, -50%)";
   contentContainer.style.width = "80%";
@@ -350,94 +411,59 @@ function createOverlayButtons() {
   buttonContainer.style.left = "10px";
   buttonContainer.style.zIndex = "10000";
 
-  var button1 = document.createElement("button");
-  var img1 = document.createElement("img");
-  img1.src = "https://t3.ftcdn.net/jpg/01/58/34/10/360_F_158341076_1UVkU7KFK3f7yiTcuJswvZsqxQFPNv6F.jpg";
-  img1.classList.add("overlayButtonImg");
-  img1.style.width = "20px"; // Adjust the width as needed
-  img1.style.height = "20px"; // Adjust the height as needed
-  button1.appendChild(img1);
-  button1.dataset.group = 1;
-  button1.style.backgroundColor = "blue"; // Group 1 background color
-  button1.style.width = "50px"; // Adjust the width as needed
-  button1.style.height = "50px"; // Adjust the height as needed
+  function createButton(imgSrc, group, bgColor) {
+    var button = document.createElement("button");
+    var img = document.createElement("img");
+    img.src = imgSrc;
+    img.classList.add("overlayButtonImg");
+    img.style.width = "30px"; // Adjust the width as needed
+    img.style.height = "30px"; // Adjust the height as needed
+    button.appendChild(img);
+    button.dataset.group = group;
+    button.style.backgroundColor = bgColor;
+    button.style.borderRadius = "50%"; // Make the button round
+    button.style.width = "50px"; // Adjust the width as needed
+    button.style.height = "50px"; // Adjust the height as needed
 
-  // Add event listener for button click
-  button1.addEventListener("click", function() {
-    const groupToFilter = parseInt(this.dataset.group);
-    filterNodes(groupToFilter);
-  });
-
-  buttonContainer.appendChild(button1);
-  buttonContainer.appendChild(document.createElement("br"));
-
-  var button2 = document.createElement("button");
-  var img2 = document.createElement("img");
-  img2.src = "path_to_image2.jpg"; // Replace "path_to_image2.jpg" with the actual image path
-  img2.classList.add("overlayButtonImg");
-  img2.style.width = "20px"; // Adjust the width as needed
-  img2.style.height = "20px"; // Adjust the height as needed
-  button2.appendChild(img2);
-  button2.dataset.group = 2;
-  button2.style.backgroundColor = "yellow"; // Group 2 background color
-  button2.style.width = "50px"; // Adjust the width as needed
-  button2.style.height = "50px"; // Adjust the height as needed
-
-  // Add event listener for button click
-  button2.addEventListener("click", function() {
-    const groupToFilter = parseInt(this.dataset.group);
-    filterNodes(groupToFilter);
-  });
-
-  buttonContainer.appendChild(button2);
-  buttonContainer.appendChild(document.createElement("br"));
-
-  // Repeat the same process for button 3 and button 4...
-  var button3 = document.createElement("button");
-  var img3 = document.createElement("img");
-  img3.src = "https://t3.ftcdn.net/jpg/01/58/34/10/360_F_158341076_1UVkU7KFK3f7yiTcuJswvZsqxQFPNv6F.jpg";
-  img3.classList.add("overlayButtonImg");
-  img3.style.width = "20px"; // Adjust the width as needed
-  img3.style.height = "20px"; // Adjust the height as needed
-  button3.appendChild(img3);
-  button3.dataset.group = 3;
-  button3.style.backgroundColor = "red"; // Group 1 background color
-  button3.style.width = "50px"; // Adjust the width as needed
-  button3.style.height = "50px"; // Adjust the height as needed
-
-  // Add event listener for button click
-  button3.addEventListener("click", function() {
-    const groupToFilter = parseInt(this.dataset.group);
-    filterNodes(groupToFilter);
-  });
-
-  buttonContainer.appendChild(button3);
-  buttonContainer.appendChild(document.createElement("br"));
-
-    // Repeat the same process for button 3 and button 4...
-    var button4 = document.createElement("button");
-    var img4 = document.createElement("img");
-    img4.src = "https://t3.ftcdn.net/jpg/01/58/34/10/360_F_158341076_1UVkU7KFK3f7yiTcuJswvZsqxQFPNv6F.jpg";
-    img4.classList.add("overlayButtonImg");
-    img4.style.width = "20px"; // Adjust the width as needed
-    img4.style.height = "20px"; // Adjust the height as needed
-    button4.appendChild(img4);
-    button4.dataset.group = 4;
-    button4.style.backgroundColor = "green"; // Group 1 background color
-    button4.style.width = "50px"; // Adjust the width as needed
-    button4.style.height = "50px"; // Adjust the height as needed
-  
     // Add event listener for button click
-    button4.addEventListener("click", function() {
+    button.addEventListener("click", function() {
       const groupToFilter = parseInt(this.dataset.group);
       filterNodes(groupToFilter);
     });
-  
-    buttonContainer.appendChild(button4);
-    buttonContainer.appendChild(document.createElement("br"));
-  
 
-    container.appendChild(buttonContainer);
+    return button;
+  }
+
+  var button1 = createButton(
+    "https://t3.ftcdn.net/jpg/01/58/34/10/360_F_158341076_1UVkU7KFK3f7yiTcuJswvZsqxQFPNv6F.jpg",
+    1,
+    "blue"
+  );
+  buttonContainer.appendChild(button1);
+  buttonContainer.appendChild(document.createElement("br"));
+
+  var button2 = createButton("https://t3.ftcdn.net/jpg/01/58/34/10/360_F_158341076_1UVkU7KFK3f7yiTcuJswvZsqxQFPNv6F.jpg", 2, "yellow"); // Replace "path_to_image2.jpg" with the actual image path
+  buttonContainer.appendChild(button2);
+  buttonContainer.appendChild(document.createElement("br"));
+
+  var button3 = createButton(
+    "https://t3.ftcdn.net/jpg/01/58/34/10/360_F_158341076_1UVkU7KFK3f7yiTcuJswvZsqxQFPNv6F.jpg",
+    3,
+    "red"
+  );
+  buttonContainer.appendChild(button3);
+  buttonContainer.appendChild(document.createElement("br"));
+
+  var button4 = createButton(
+    "https://t3.ftcdn.net/jpg/01/58/34/10/360_F_158341076_1UVkU7KFK3f7yiTcuJswvZsqxQFPNv6F.jpg",
+    4,
+    "green"
+  );
+  buttonContainer.appendChild(button4);
+  buttonContainer.appendChild(document.createElement("br"));
+
+  container.appendChild(buttonContainer);
+
   // Add Add Request button
   var addRequestButton = document.createElement("button");
   addRequestButton.textContent = "Add Request";
@@ -445,6 +471,7 @@ function createOverlayButtons() {
   addRequestButton.style.width = "80px"; // Adjust width as needed
   addRequestButton.style.height = "50px"; // Adjust height as needed
   addRequestButton.style.color = "white";
+  addRequestButton.style.borderRadius = "10px"; // Make the button slightly rounded
   addRequestButton.addEventListener("click", function() {
     showAddRequestPopup();
   });
@@ -459,6 +486,7 @@ function createOverlayButtons() {
   resetButton.style.width = "80px"; // Adjust width as needed
   resetButton.style.height = "30px"; // Adjust height as needed
   resetButton.style.color = "white";
+  resetButton.style.borderRadius = "10px"; // Make the button slightly rounded
   resetButton.addEventListener("click", function() {
     if (network === null || nodes === null) {
       console.error('Network or nodes data is not available.');
@@ -589,13 +617,11 @@ function showAddRequestPopup() {
   container.appendChild(popupContainer);
 }
 
-
-
 function createadminoverlay() {
   var container = document.getElementById("mynetwork");
   var buttonContainer = document.createElement("div");
   buttonContainer.style.position = "absolute";
-  buttonContainer.style.top = "12%";
+  buttonContainer.style.top = "13%";
   buttonContainer.style.right = "10px";
   buttonContainer.style.zIndex = "10000";
 
@@ -953,9 +979,6 @@ function showAddNodePopup() {
   popupContainer.appendChild(descriptionInput);
   popupContainer.appendChild(document.createElement("br"));
 
-  popupContainer.appendChild(requestIdLabel);
-  popupContainer.appendChild(requestIdInput);
-  popupContainer.appendChild(document.createElement("br"));
 
   popupContainer.appendChild(addButton);
 
