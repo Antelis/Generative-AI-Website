@@ -8,7 +8,7 @@ const bodyParser = require('body-parser');
 const pool = new Pool({
     user: 'postgres',
     host: 'localhost',
-    database: 'genai1', // Specify the database name
+    database: 'bdai', // Specify the database name
     password: 'pinguino04',
     port: 5432, // Default PostgreSQL port
 });
@@ -47,7 +47,7 @@ app.get('/favicon.ico', (req, res) => {
 
 // Route to fetch data from PostgreSQL
 app.get('/database', (req, res) => {
-    pool.query('SELECT * FROM public."GenAiTools"', (err, result) => { // Specify the schema and table name
+    pool.query('SELECT * FROM public."ai_tools2"', (err, result) => { // Specify the schema and table name
         if (err) {
             console.error('Error executing query:', err);
             return res.status(500).send('Error executing query');
@@ -56,63 +56,63 @@ app.get('/database', (req, res) => {
         const csvData = result.rows.map(row => Object.values(row).join(',')).join('\n');
         res.header('Content-Type', 'text/csv');
         res.send(csvData);
+        //console.log(csvData);
     });
 });
 
-// Route to add a new node to the database
 app.post('/database', (req, res) => {
-    console.log('Received data:', req.body); // Add this line for debugging
+  console.log('Received data:', req.body); // Add this line for debugging
 
-    // Extract data from req.body
-    const {
-        toolName,
-        referenceURL,
-        generativeAiEcosystemLayer,
-        contentType,
-        primaryEnterpriseCategory,
-        complimentaryEnterpriseCategory,
-        freeVersionOption,
-        paidVersionOption,
-        licensingType,
-        toolDescription
-    } = req.body;
+  // Extract data from req.body
+  const {
+      toolName,
+      referenceURL,
+      generativeAiEcosystemLayer,
+      contentType,
+      primaryEnterpriseCategory,
+      freeVersionOption,
+      paidVersionOption,
+      licensingType,
+      imageURL,
+      toolDescription
+  } = req.body;
 
-    // Execute the INSERT query to add the new node to the database
-    pool.query(
-        `INSERT INTO public."GenAiTools" (
-          "Tool Name", 
-          "Reference URL", 
-          "Generative AI Ecosystem Layer", 
-          "Content Type", 
-          "Primary Enterprise Category", 
-          "Complimentary Enterprise Category", 
-          "Free Version Option", 
-          "Paid Version Option", 
-          "Licensing Type", 
-          "Tool Description"
-        ) 
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
-        [
-            toolName,
-            referenceURL,
-            generativeAiEcosystemLayer,
-            contentType,
-            primaryEnterpriseCategory,
-            complimentaryEnterpriseCategory,
-            freeVersionOption,
-            paidVersionOption,
-            licensingType,
-            toolDescription
-        ],
-        (err, result) => {
-            if (err) {
-                console.error('Error executing INSERT query:', err);
-                return res.status(500).send('Error executing INSERT query');
-            }
-            console.log('New node added to PostgreSQL database!');
-            res.status(200).send('New node added successfully');
-        }
-    );
+  // Execute the INSERT query to add the new node to the database
+  pool.query(
+      `INSERT INTO public."ai_tools2" (
+        "Tool Name", 
+        "Reference URL", 
+        "Generative Ecosystem Layer",
+        "Content Type", 
+        "Enterprise Category",
+        "Free Version", 
+        "Paid Version",
+        "Licensing Type", 
+        "imageURL",
+        "Description"
+      ) 
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+      [
+          toolName,
+          referenceURL,
+          generativeAiEcosystemLayer,
+          contentType,
+          primaryEnterpriseCategory,
+          freeVersionOption,
+          paidVersionOption,
+          licensingType,
+          imageURL,
+          toolDescription
+      ],
+      (err, result) => {
+          if (err) {
+              console.error('Error executing INSERT query:', err);
+              return res.status(500).send('Error executing INSERT query');
+          }
+          console.log('New node added to PostgreSQL database!');
+          res.status(200).send('New node added successfully');
+      }
+  );
 });
 
 // Route to update node information in the database
@@ -124,7 +124,6 @@ app.put('/updateNode', (req, res) => {
         generativeAiEcosystemLayer,
         contentType,
         primaryEnterpriseCategory,
-        complimentaryEnterpriseCategory,
         freeVersionOption,
         paidVersionOption,
         licensingType,
@@ -143,7 +142,6 @@ app.put('/updateNode', (req, res) => {
     if (generativeAiEcosystemLayer !== undefined && generativeAiEcosystemLayer !== '') updateFields['Generative AI Ecosystem Layer'] = generativeAiEcosystemLayer;
     if (contentType !== undefined && contentType !== '') updateFields['Content Type'] = contentType;
     if (primaryEnterpriseCategory !== undefined && primaryEnterpriseCategory !== '') updateFields['Primary Enterprise Category'] = primaryEnterpriseCategory;
-    if (complimentaryEnterpriseCategory !== undefined && complimentaryEnterpriseCategory !== '') updateFields['Complimentary Enterprise Category'] = complimentaryEnterpriseCategory;
     if (freeVersionOption !== undefined && freeVersionOption !== '') updateFields['Free Version Option'] = freeVersionOption;
     if (paidVersionOption !== undefined && paidVersionOption !== '') updateFields['Paid Version Option'] = paidVersionOption;
     if (licensingType !== undefined && licensingType !== '') updateFields['Licensing Type'] = licensingType;
@@ -163,7 +161,7 @@ app.put('/updateNode', (req, res) => {
 
     // Execute the UPDATE query to update node information in the database
     pool.query(
-        `UPDATE public."GenAiTools" 
+        `UPDATE public."ai_tools2" 
          SET ${setClause}
          WHERE id = $${values.length + 1}`,
         [...values, nodeId],
@@ -185,7 +183,7 @@ app.delete('/deleteNode', (req, res) => {
     if (nodeId) {
         // Delete node by ID
         pool.query(
-            `DELETE FROM public."GenAiTools" WHERE id = $1`,
+            `DELETE FROM public."ai_tools2" WHERE id = $1`,
             [nodeId],
             (err, result) => {
                 if (err) {
@@ -200,21 +198,19 @@ app.delete('/deleteNode', (req, res) => {
         res.status(400).json({ error: 'Invalid request' });
     }
 });
-
-// Route to add a request to the "requests" table
 app.post('/addRequest', (req, res) => {
   // Extract data from req.body
-  const { name, url, contentType, description } = req.body;
+  const { toolname, description, imageurl, contenttype, referenceurl } = req.body;
 
-  // Check if the required field "name" is provided
-  if (!name) {
-    return res.status(400).send('Name is required');
+  // Check if the required field "toolname" is provided
+  if (!toolname) {
+    return res.status(400).send('Tool Name is required');
   }
 
   // Execute the INSERT query to add the request to the "requests" table
   pool.query(
-    `INSERT INTO requests (name, url, content_type, description) VALUES ($1, $2, $3, $4)`,
-    [name, url, contentType, description],
+    `INSERT INTO public."request" (toolname, description, imageurl, contenttype, referenceurl) VALUES ($1, $2, $3, $4, $5)`,
+    [toolname, description, imageurl, contenttype, referenceurl],
     (err, result) => {
       if (err) {
         console.error('Error adding request to the "requests" table:', err);
@@ -226,12 +222,13 @@ app.post('/addRequest', (req, res) => {
   );
 });
 
+
 app.get('/getRequestInfo/:requestId', (req, res) => {
   const requestId = req.params.requestId;
 
   // Execute a SELECT query to retrieve request information based on the request ID
   pool.query(
-    `SELECT * FROM public."requests" WHERE id = $1`,
+    `SELECT * FROM public."request" WHERE id = $1`,
     [requestId],
     (err, result) => {
       if (err) {
@@ -251,25 +248,32 @@ app.get('/getRequestInfo/:requestId', (req, res) => {
 
 app.post('/addRequest2', (req, res) => {
   // Extract data from req.body
-  const { name, url, contentType, description } = req.body;
+  const { toolname, referenceurl, generativeecosystemlayer, contenttype, enterprisecategory, freeversion, paidversion, licensingtype, imageurl, description } = req.body;
 
-  // Check if the required field "name" is provided
-  if (!name) {
-    return res.status(400).send('Name is required');
+  // Check if the required field "Tool Name" is provided
+  if (!toolname) {
+    return res.status(400).send('Tool Name is required');
   }
+
+  // Validate and sanitize input data here if needed
+
   pool.query(
-    `INSERT INTO public."GenAiTools" ("Tool Name", "Reference URL", "Content Type", "Tool Description") VALUES ($1, $2, $3, $4)`,
-    [name, url, contentType, description],
+    `INSERT INTO public."ai_tools2" ("Tool Name", "Reference URL", "Generative Ecosystem Layer", "Content Type", "Enterprise Category", "Free Version", "Paid Version", "Licensing Type", "imageURL", "Description") 
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+    [toolname, referenceurl, generativeecosystemlayer, contenttype, enterprisecategory, freeversion, paidversion, licensingtype, imageurl, description],
     (err, result) => {
       if (err) {
         console.error('Error adding request attributes to the main database:', err);
-        return res.status(500).send('Error adding request attributes');
+        return res.status(500).send('Error adding request attributes to the main database');
       }
       console.log('Request attributes added to the main database');
       res.status(200).send('Request attributes added successfully');
     }
   );
 });
+
+
+
 
 module.exports = { app };
 

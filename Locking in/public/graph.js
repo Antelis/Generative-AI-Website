@@ -21,34 +21,32 @@ function draw() {
         const values = row.split(',');
         const node = {};
         // Assigning properties based on CSV columns
-        node.label = values[0].trim(); // Tool Name
+        node.label = values[1].trim();
         node.toolName = node.label;
-        node.referenceURL = values[1].trim(); // Reference URL
-        node.ecosystemLayer = values[2] ? values[2].trim() : ''; // Generative AI Ecosystem Layer
-        node.contentType = values[3] ? values[3].trim().toLowerCase() : ''; // Content Type (converted to lowercase)
-        node.primaryEnterpriseCategory = values[4] ? values[4].trim() : ''; // Primary Enterprise Category
-        node.complimentaryEnterpriseCategory = values[5] ? values[5].trim() : ''; // Complimentary Enterprise Category
-        node.freeVersionOption = values[6] ? values[6].trim() : ''; // Free Version Option
-        node.paidVersionOption = values[7] ? values[7].trim() : ''; // Paid Version Option
-        node.licensingType = values[8] ? values[8].trim() : ''; // Licensing Type
-        node.toolDescription = values[9] ? values[9].trim() : ''; // Tool Description
-        // Truncate description if it's too long
+        node.referenceURL = values[2].trim();
+        node.ecosystemLayer = values[3] ? values[3].trim() : '';
+        node.contentType = values[4] ? values[4].trim().toLowerCase() : '';
+        node.primaryEnterpriseCategory = values[5] ? values[5].trim() : '';
+        node.freeVersionOption = values[6] ? values[6].trim() : '';
+        node.paidVersionOption = values[7] ? values[7].trim() : '';
+        node.licensingType = values[8] ? values[8].trim() : ''; 
+        node.image = values[9] ? values[9].trim() : ''; // Corrected index for image
+        node.toolDescription = values[10] ? values[10].trim() : ''; // Corrected index for description
+    
         const maxLength = 500; // Set the maximum length for the description
         // Extract the description from the CSV data
-        let description = values.slice(9).join(',').trim();
+        let description = values.slice(10).join(',').trim();
         // Check if the description starts and ends with double quotes
         if (description.startsWith('"') && description.endsWith('"')) {
             // Remove the enclosing double quotes
-            description = description.slice(1, -1);
+            description = description.substring(1, description.length - 1);
         }
         // Remove the last two characters from the description
-        description = description.slice(0, -2 );
         // Truncate the description if it exceeds the maximum length
         node.toolDescription = description.length > maxLength ? description.substring(0, maxLength) + '...' : description;
         
         node.shape = 'circularImage';
-        node.image = 'https://cdn.wizeline.com/uploads/2023/01/Logo-1200.png';
-        node.id = parseInt(values[10]); // ID
+        node.id = parseInt(values[0]); // ID
         if (isNaN(node.id)) {
             // Generate a unique ID if the ID is not a number or missing
             node.id = index + 1;
@@ -71,10 +69,6 @@ function draw() {
         node.size = 25;
         return node;
     });
-    
-    
-
-    
     
 
       // Create nodes and connect random pairs
@@ -191,7 +185,7 @@ function levenshteinDistance(s1, s2) {
 // Function to show modal with node information
 function showModal(imageSrc, titleContent, textContent, url) {
   if (imageSrc.trim() === '') {
-    imageSrc = 'https://pbs.twimg.com/media/GK-94b6XsAA1aR-.jpg:large'; // Replace this with your actual default image URL
+    imageSrc = ''; // Replace this with your actual default image URL
   }
   // Create a div for the overlay
   var overlay = document.createElement("div");
@@ -513,7 +507,6 @@ function createOverlayButtons() {
 
   container.appendChild(buttonContainer);
 }
-
 function showAddRequestPopup() {
   var container = document.getElementById("mynetwork");
 
@@ -530,35 +523,52 @@ function showAddRequestPopup() {
   popupContainer.style.zIndex = "10000";
 
   // Create input fields for request properties
-  var nameLabel = document.createElement("label");
-  nameLabel.textContent = "Name:";
-  var nameInput = document.createElement("input");
-  nameInput.type = "text";
-  nameInput.required = true; // Make the name input required
-
-  var urlLabel = document.createElement("label");
-  urlLabel.textContent = "URL:";
-  var urlInput = document.createElement("input");
-  urlInput.type = "text";
-
-  var contentTypeLabel = document.createElement("label");
-  contentTypeLabel.textContent = "Content Type:";
-  var contentTypeInput = document.createElement("input");
-  contentTypeInput.type = "text";
+  var toolNameLabel = document.createElement("label");
+  toolNameLabel.textContent = "Tool Name:";
+  var toolNameInput = document.createElement("input");
+  toolNameInput.type = "text";
 
   var descriptionLabel = document.createElement("label");
   descriptionLabel.textContent = "Description:";
   var descriptionInput = document.createElement("textarea");
+
+  var imageUrlLabel = document.createElement("label");
+  imageUrlLabel.textContent = "Image URL:";
+  var imageUrlInput = document.createElement("input");
+  imageUrlInput.type = "text";
+
+  var contentTypeLabel = document.createElement("label");
+  contentTypeLabel.textContent = "Content Type:";
+  var contentTypeInput = document.createElement("select");
+  var contentTypes = ["Code", "Text", "Voice & Video", "Image"];
+  contentTypes.forEach(type => {
+    var option = document.createElement("option");
+    option.value = type.toLowerCase().replace(/\s/g, "_");
+    option.text = type;
+    contentTypeInput.appendChild(option);
+  });
+
+  var referenceUrlLabel = document.createElement("label");
+  referenceUrlLabel.textContent = "Reference URL:";
+  var referenceUrlInput = document.createElement("input");
+  referenceUrlInput.type = "text";
 
   var addButton = document.createElement("button");
   addButton.textContent = "Add Request";
 
   addButton.addEventListener("click", function () {
     // Get the input values
-    var name = nameInput.value;
-    var url = urlInput.value;
-    var contentType = contentTypeInput.value;
+    var toolName = toolNameInput.value;
     var description = descriptionInput.value;
+    var imageUrl = imageUrlInput.value;
+    var contentType = contentTypeInput.value;
+    var referenceUrl = referenceUrlInput.value;
+
+    // Check if the required field "toolName" is provided
+    if (!toolName) {
+      alert('Tool Name is required');
+      return;
+    }
 
     // Send a POST request to add the request to the "requests" table
     fetch('/addRequest', {
@@ -567,10 +577,11 @@ function showAddRequestPopup() {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        name: name,
-        url: url,
-        contentType: contentType,
-        description: description
+        toolname: toolName,
+        description: description,
+        imageurl: imageUrl,
+        contenttype: contentType,
+        referenceurl: referenceUrl
       }),
     })
       .then(response => {
@@ -596,20 +607,24 @@ function showAddRequestPopup() {
 
   popupContainer.appendChild(closeButton);
   // Append input fields and button to the popup container
-  popupContainer.appendChild(nameLabel);
-  popupContainer.appendChild(nameInput);
+  popupContainer.appendChild(toolNameLabel);
+  popupContainer.appendChild(toolNameInput);
   popupContainer.appendChild(document.createElement("br"));
 
-  popupContainer.appendChild(urlLabel);
-  popupContainer.appendChild(urlInput);
+  popupContainer.appendChild(descriptionLabel);
+  popupContainer.appendChild(descriptionInput);
+  popupContainer.appendChild(document.createElement("br"));
+
+  popupContainer.appendChild(imageUrlLabel);
+  popupContainer.appendChild(imageUrlInput);
   popupContainer.appendChild(document.createElement("br"));
 
   popupContainer.appendChild(contentTypeLabel);
   popupContainer.appendChild(contentTypeInput);
   popupContainer.appendChild(document.createElement("br"));
 
-  popupContainer.appendChild(descriptionLabel);
-  popupContainer.appendChild(descriptionInput);
+  popupContainer.appendChild(referenceUrlLabel);
+  popupContainer.appendChild(referenceUrlInput);
   popupContainer.appendChild(document.createElement("br"));
 
   popupContainer.appendChild(addButton);
@@ -663,6 +678,7 @@ function createadminoverlay() {
   container.appendChild(buttonContainer);
   buttonContainer.appendChild(document.createElement("br"));
 }
+
 function showAddNodeRequestPopup() {
   var container = document.getElementById("mynetwork");
 
@@ -698,7 +714,7 @@ function showAddNodeRequestPopup() {
       })
       .then(data => {
         // Extract the attributes from the retrieved data
-        var { name, url, contentType, description } = data;
+        var { toolname, description, imageurl, contenttype, referenceurl } = data;
   
         // Make a fetch request to add the request attributes to the main database
         fetch('/addRequest2', {
@@ -707,10 +723,11 @@ function showAddNodeRequestPopup() {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            name: name,
-            url: url,
-            contentType: contentType,
-            description: description
+            toolname: toolname,
+            description: description,
+            imageurl: imageurl,
+            contenttype: contenttype,
+            referenceurl: referenceurl
           }),
         })
         .then(response => {
@@ -729,6 +746,7 @@ function showAddNodeRequestPopup() {
         console.error('There was a problem with the fetch operation:', error);
       });
   });
+  
   
   var previewButton = document.createElement("button");
   previewButton.textContent = "Preview";
@@ -802,6 +820,7 @@ function showAddNodeRequestPopup() {
 }
 
 
+
 function showAddNodePopup() {
   var container = document.getElementById("mynetwork");
 
@@ -850,34 +869,21 @@ function showAddNodePopup() {
   var primaryCategoryInput = document.createElement("input");
   primaryCategoryInput.type = "text";
 
-  var complimentaryCategoryLabel = document.createElement("label");
-  complimentaryCategoryLabel.textContent = "Complimentary Enterprise Category:";
-  var complimentaryCategoryInput = document.createElement("input");
-  complimentaryCategoryInput.type = "text";
-
-  var freeVersionLabel = document.createElement("label");
-  freeVersionLabel.textContent = "Free Version Option:";
-  var freeVersionInput = document.createElement("input");
-  freeVersionInput.type = "text";
-
-  var paidVersionLabel = document.createElement("label");
-  paidVersionLabel.textContent = "Paid Version Option:";
-  var paidVersionInput = document.createElement("input");
-  paidVersionInput.type = "text";
-
   var licensingTypeLabel = document.createElement("label");
   licensingTypeLabel.textContent = "Licensing Type:";
-  var licensingTypeInput = document.createElement("input");
-  licensingTypeInput.type = "text";
+  var licensingTypeInput = document.createElement("select");
+  // Add options for Licensing Type (true/false)
+  var licensingOptions = ["true", "false"];
+  licensingOptions.forEach(option => {
+    var opt = document.createElement("option");
+    opt.value = option;
+    opt.text = option;
+    licensingTypeInput.add(opt);
+  });
 
   var descriptionLabel = document.createElement("label");
   descriptionLabel.textContent = "Tool Description:";
   var descriptionInput = document.createElement("textarea");
-
-  var requestIdLabel = document.createElement("label");
-  requestIdLabel.textContent = "Request ID:";
-  var requestIdInput = document.createElement("input");
-  requestIdInput.type = "text";
 
   var addButton = document.createElement("button");
   addButton.textContent = "Add Node";
@@ -889,12 +895,8 @@ function showAddNodePopup() {
     var layer = layerInput.value;
     var contentType = contentTypeInput.value;
     var primaryCategory = primaryCategoryInput.value;
-    var complimentaryCategory = complimentaryCategoryInput.value;
-    var freeVersionOption = freeVersionInput.value;
-    var paidVersionOption = paidVersionInput.value;
     var licensingType = licensingTypeInput.value;
     var toolDescription = descriptionInput.value;
-    var requestId = requestIdInput.value; // Get the request ID
 
     // Send a POST request to add the node to the database
     fetch('/database', {
@@ -908,12 +910,8 @@ function showAddNodePopup() {
         generativeAiEcosystemLayer: layer,
         contentType: contentType,
         primaryEnterpriseCategory: primaryCategory,
-        complimentaryEnterpriseCategory: complimentaryCategory,
-        freeVersionOption: freeVersionOption,
-        paidVersionOption: paidVersionOption,
         licensingType: licensingType,
         toolDescription: toolDescription,
-        requestId: requestId, // Include the request ID in the payload
       }),
     })
       .then(response => {
@@ -933,7 +931,7 @@ function showAddNodePopup() {
   closeButton.textContent = "X";
   closeButton.classList.add("close");
 
-  closeButton.addEventListener("click", function() {
+  closeButton.addEventListener("click", function () {
     container.removeChild(popupContainer);
   });
 
@@ -959,18 +957,6 @@ function showAddNodePopup() {
   popupContainer.appendChild(primaryCategoryInput);
   popupContainer.appendChild(document.createElement("br"));
 
-  popupContainer.appendChild(complimentaryCategoryLabel);
-  popupContainer.appendChild(complimentaryCategoryInput);
-  popupContainer.appendChild(document.createElement("br"));
-
-  popupContainer.appendChild(freeVersionLabel);
-  popupContainer.appendChild(freeVersionInput);
-  popupContainer.appendChild(document.createElement("br"));
-
-  popupContainer.appendChild(paidVersionLabel);
-  popupContainer.appendChild(paidVersionInput);
-  popupContainer.appendChild(document.createElement("br"));
-
   popupContainer.appendChild(licensingTypeLabel);
   popupContainer.appendChild(licensingTypeInput);
   popupContainer.appendChild(document.createElement("br"));
@@ -978,7 +964,6 @@ function showAddNodePopup() {
   popupContainer.appendChild(descriptionLabel);
   popupContainer.appendChild(descriptionInput);
   popupContainer.appendChild(document.createElement("br"));
-
 
   popupContainer.appendChild(addButton);
 
