@@ -1,13 +1,12 @@
 var nodes = null;
 var edges = null;
 var network = null;
-// Sample similarity function (adjust based on your data)
 
 
 function draw() {
   var container = document.getElementById("mynetwork");
 
-  fetch('/database') // Fetch data from the PostgreSQL database
+  fetch('/database') //Fetch data from the PostgreSQL
     .then(response => {
       if (response.ok) {
         return response.text();
@@ -20,7 +19,7 @@ function draw() {
       nodes = dataRows.map((row, index) => {
         const values = row.split(',');
         const node = {};
-        // Assigning properties based on CSV columns
+        //Assigning properties based on CSV columns
         node.label = values[1].trim();
         node.toolName = node.label;
         node.referenceURL = values[2].trim();
@@ -30,28 +29,22 @@ function draw() {
         node.freeVersionOption = values[6] ? values[6].trim() : '';
         node.paidVersionOption = values[7] ? values[7].trim() : '';
         node.licensingType = values[8] ? values[8].trim() : ''; 
-        node.image = values[9] ? values[9].trim() : ''; // Corrected index for image
-        node.toolDescription = values[10] ? values[10].trim() : ''; // Corrected index for description
+        node.image = values[9] ? values[9].trim() : ''; 
+        node.toolDescription = values[10] ? values[10].trim() : '';
     
-        const maxLength = 500; // Set the maximum length for the description
-        // Extract the description from the CSV data
+        const maxLength = 500;
         let description = values.slice(10).join(',').trim();
-        // Check if the description starts and ends with double quotes
         if (description.startsWith('"') && description.endsWith('"')) {
-            // Remove the enclosing double quotes
             description = description.substring(1, description.length - 1);
         }
-        // Remove the last two characters from the description
-        // Truncate the description if it exceeds the maximum length
         node.toolDescription = description.length > maxLength ? description.substring(0, maxLength) + '...' : description;
         
         node.shape = 'circularImage';
-        node.id = parseInt(values[0]); // ID
+        node.id = parseInt(values[0]);
         if (isNaN(node.id)) {
-            // Generate a unique ID if the ID is not a number or missing
             node.id = index + 1;
         }
-        // Assign group based on content type
+        //Assign group based on content type
         switch (node.contentType) {
             case 'code':
                 node.group = 1;
@@ -70,9 +63,8 @@ function draw() {
         return node;
     });
     
-
-      // Create nodes and connect random pairs
-      // Create edges based on similarity in name, URL, and content type
+      //create nodes and connect random pairs
+      //create edges based on similarity in name, URL, and content type
 const edgesData = [];
 const lastIndex = nodes.length - 1;
 
@@ -80,14 +72,12 @@ nodes.forEach((node1, index1) => {
   let maxSimilarity = 0;
   let mostSimilarNodeIndex = -1;
   
-  // Compare node1 with all other nodes to find the most similar node
   nodes.forEach((node2, index2) => {
     if (index1 !== index2) {
       const nameSimilarity = similarity(node1.label, node2.label);
       const urlSimilarity = similarity(node1.referenceURL, node2.referenceURL);
       const contentTypeSimilarity = node1.contentType === node2.contentType ? 1 : 0;
       
-      // Calculate total similarity as a weighted sum
       const totalSimilarity = 0.4 * nameSimilarity + 0.4 * urlSimilarity + 0.2 * contentTypeSimilarity;
       
       if (totalSimilarity > maxSimilarity) {
@@ -97,19 +87,16 @@ nodes.forEach((node1, index1) => {
     }
   });
   
-  // Connect node1 to the most similar node found, or to the last node if no match is found
   const toNodeIndex = mostSimilarNodeIndex !== -1 ? mostSimilarNodeIndex : lastIndex;
   edgesData.push({ from: index1 + 1, to: toNodeIndex + 1, color: { color: 'black' } }); // Set edge color to black
 });
 
-// Helper function to calculate similarity between two strings (using Levenshtein distance)
 function similarity(s1, s2) {
   const maxLength = Math.max(s1.length, s2.length);
   const distance = levenshteinDistance(s1, s2);
   return 1 - distance / maxLength;
 }
 
-// Function to calculate Levenshtein distance between two strings
 function levenshteinDistance(s1, s2) {
   const dp = Array.from(Array(s1.length + 1), () => Array(s2.length + 1).fill(0));
 
@@ -133,7 +120,6 @@ function levenshteinDistance(s1, s2) {
 }
 
 
-      // Construct the data object for vis.js
       const data = {
         nodes: nodes,
         edges: edgesData
@@ -156,21 +142,19 @@ function levenshteinDistance(s1, s2) {
         physics: {
           enabled: true,
           stabilization: {
-            iterations: 1000, // Increase stabilization iterations
-            fit: false, // Disable fitting after stabilization
+            iterations: 1000,
+            fit: false,
           },
         },
         interaction: {
           hover: true,
         },
-        // Set initial zoom level and position
       };
       
       
 
       network = new vis.Network(container, data, options);
 
-      // Add event listeners after the network is created
       addNetworkEventListeners();
       createOverlayButtons();
       createsearchoverlay();
@@ -182,12 +166,11 @@ function levenshteinDistance(s1, s2) {
 }
 
 
-// Function to show modal with node information
 function showModal(imageSrc, titleContent, textContent, url) {
   if (imageSrc.trim() === '') {
-    imageSrc = ''; // Replace this with your actual default image URL
+    imageSrc = '';
   }
-  // Create a div for the overlay
+  //div for the overlay
   var overlay = document.createElement("div");
   overlay.style.position = "fixed";
   overlay.style.top = "0";
@@ -197,7 +180,7 @@ function showModal(imageSrc, titleContent, textContent, url) {
   overlay.style.backgroundColor = "rgba(0, 0, 0, 0.5)";
   overlay.style.zIndex = "9999";
 
-  // Create a square container for the content
+  //square container for the content
   var contentContainer = document.createElement("div");
   contentContainer.style.position = "absolute";
   contentContainer.style.top = "60%";
@@ -212,35 +195,33 @@ function showModal(imageSrc, titleContent, textContent, url) {
   contentContainer.style.boxShadow = "0 2px 10px rgba(0, 0, 0, 0.2)";
   contentContainer.style.zIndex = "10000";
 
-  // Create an image container
+  //9mage container
   var imageContainer = document.createElement("div");
   imageContainer.style.width = "40%";
   imageContainer.style.marginRight = "20px";
 
-  // Create an image element
+  //image element
   var img = document.createElement("img");
 
-  // Set the source and class for the image
+  //source and class for the image
   img.src = imageSrc;
-  img.classList.add("modal-image"); // Add a class for styling
+  img.classList.add("modal-image");
 
-  // Add CSS styles to limit the size of the image
   img.style.maxWidth = "100%";
   img.style.maxHeight = "100%";
-  img.style.objectFit = "contain"; // Maintain aspect ratio
+  img.style.objectFit = "contain";
 
-  // Append the image to its container
   imageContainer.appendChild(img);
 
 
-  // Create a div for the right half of the content container
+  //div for the right half of the content container
   var rightContainer = document.createElement("div");
   rightContainer.style.width = "60%";
   rightContainer.style.display = "flex";
   rightContainer.style.flexDirection = "column";
   rightContainer.style.justifyContent = "center";
 
-  // Create a title div with underlined text
+  //title div
   var titleDiv = document.createElement("div");
   titleDiv.textContent = titleContent;
   titleDiv.style.fontFamily = "Arial, sans-serif";
@@ -254,15 +235,14 @@ function showModal(imageSrc, titleContent, textContent, url) {
   titleDiv.style.textDecoration = "underline";
   titleDiv.style.cursor = "pointer";
 
-  // Open URL in a new window when title is clicked
+  //open URL
   titleDiv.onclick = function() {
       window.open(url, "_blank");
   };
 
-  // Append title to the right half of the content container
   rightContainer.appendChild(titleDiv);
 
-  // Create a description paragraph
+  //description paragraph
   var descriptionPara = document.createElement("p");
   descriptionPara.textContent = textContent.Description;
   descriptionPara.style.fontFamily = "Arial, sans-serif";
@@ -271,10 +251,9 @@ function showModal(imageSrc, titleContent, textContent, url) {
   descriptionPara.style.marginBottom = "10px";
   descriptionPara.style.textAlign = "left";
 
-  // Append description paragraph to the right half of the content container
   rightContainer.appendChild(descriptionPara);
 
-  // Create a div for the attributes
+  //div for the attributes
   var attributesDiv = document.createElement("div");
   attributesDiv.style.fontFamily = "Arial, sans-serif";
   attributesDiv.style.fontSize = "16px";
@@ -282,7 +261,6 @@ function showModal(imageSrc, titleContent, textContent, url) {
   attributesDiv.style.marginBottom = "10px"; 
   attributesDiv.style.textAlign = "left";
 
-  // Populate attributes div with bullet points for attributes
   var ul = document.createElement("ul");
   ul.style.listStylePosition = "inside"; 
   ul.style.paddingLeft = "235px";
@@ -295,10 +273,9 @@ function showModal(imageSrc, titleContent, textContent, url) {
   }
   attributesDiv.appendChild(ul);
 
-  // Append attributes div to the right half of the content container
   rightContainer.appendChild(attributesDiv);
 
-  // Create a close button
+  //close button
   var closeButton = document.createElement("button");
   closeButton.innerHTML = "&times;";
   closeButton.style.position = "absolute";
@@ -311,21 +288,20 @@ function showModal(imageSrc, titleContent, textContent, url) {
   closeButton.style.cursor = "pointer";
   closeButton.style.zIndex = "10001";
 
-  // Append close button to the content container
+  //close button to the content container
   contentContainer.appendChild(closeButton);
 
-  // Append elements to the content container
+  //append elements to the content container
   contentContainer.appendChild(imageContainer);
   contentContainer.appendChild(rightContainer);
 
-  // Append elements to the overlay
+  //append elements to the overlay
   overlay.appendChild(contentContainer);
 
-  // Append the overlay to the network container
+  //append the overlay to the network container
   var networkContainer = document.getElementById("mynetwork");
   networkContainer.appendChild(overlay);
 
-  // Close the overlay when clicked outside the content or on the close button
   overlay.onclick = function(event) {
       if (
           event.target === overlay ||
@@ -336,33 +312,31 @@ function showModal(imageSrc, titleContent, textContent, url) {
   };
 }
 
-// Function to add network event listeners
 function addNetworkEventListeners() {
   network.on('click', function(params) {
-    console.log('Node clicked:', params.nodes[0]); // Example: Log the clicked node ID
+    console.log('Node clicked:', params.nodes[0]);
   });
-  // Check if the network is null before adding event listeners
   if (network !== null) {
-    network.on("selectNode", function (params) { // Change event to "selectNode"
+    network.on("selectNode", function (params) { 
       var nodeId = params.nodes[0];
-      var node = nodes.find(n => n.id == nodeId); // Find the selected node
+      var node = nodes.find(n => n.id == nodeId);
       if (node) {
-        // Print all node information to the console
+        //node information to the console
         console.log("Selected Node Information:");
         console.log(node);
         
-        var imageSrc = node.image !== '' ? node.image : 'https://pbs.twimg.com/media/GK-94b6XsAA1aR-.jpg:large'; // Set a default image if imageSrc is empty
-        var titleContent = node['toolName']; // Check if it should be 'toolName' instead of 'Tool Name'
-        var url = node['referenceURL']; // Check if it should be 'referenceURL' instead of 'Reference URL'
+        var imageSrc = node.image !== '' ? node.image : 'https://pbs.twimg.com/media/GK-94b6XsAA1aR-.jpg:large';
+        var titleContent = node['toolName'];
+        var url = node['referenceURL']; 
         var textContent = {
           "Description" : node['toolDescription'],
-          "Content Type": node['contentType'], // Check if it should be 'contentType' instead of 'Content Type'
-          "Ecosystem Layer": node['ecosystemLayer'], // Check if it should be 'licensingType' instead of 'Licensing Type'
-          "Enterprise Category": node['primaryEnterpriseCategory'], // Check if it should be 'ecosystemLayer' instead of 'Generative AI Ecosystem Layer'
+          "Content Type": node['contentType'], 
+          "Ecosystem Layer": node['ecosystemLayer'], 
+          "Enterprise Category": node['primaryEnterpriseCategory'], 
           "Licensing": node['licensingType']
         };
         
-        showModal(imageSrc, titleContent, textContent, url); // Call showModal with the correct parameters
+        showModal(imageSrc, titleContent, textContent, url); 
       } else {
         console.error('Selected node not found.');
       }
@@ -381,13 +355,12 @@ function createsearchoverlay() {
   searchOverlay.style.transform = "translateX(-75%)";
   searchOverlay.style.zIndex = "10000";
 
-  // Create search input
+  //search input
   var searchInput = document.createElement("input");
   searchInput.type = "text";
   searchInput.placeholder = "Search...";
   searchInput.id = "searchInput";
-  searchInput.style.width = "400px"; // Adjust width as needed
-    // Add event listener for search input
+  searchInput.style.width = "400px";
     searchInput.addEventListener("input", function() {
       searchNode();
     });
@@ -410,16 +383,15 @@ function createOverlayButtons() {
     var img = document.createElement("img");
     img.src = imgSrc;
     img.classList.add("overlayButtonImg");
-    img.style.width = "30px"; // Adjust the width as needed
-    img.style.height = "30px"; // Adjust the height as needed
+    img.style.width = "30px";
+    img.style.height = "30px";
     button.appendChild(img);
     button.dataset.group = group;
     button.style.backgroundColor = bgColor;
-    button.style.borderRadius = "50%"; // Make the button round
-    button.style.width = "50px"; // Adjust the width as needed
-    button.style.height = "50px"; // Adjust the height as needed
+    button.style.borderRadius = "50%";
+    button.style.width = "50px"; 
+    button.style.height = "50px"; 
 
-    // Add event listener for button click
     button.addEventListener("click", function() {
       const groupToFilter = parseInt(this.dataset.group);
       filterNodes(groupToFilter);
@@ -436,7 +408,7 @@ function createOverlayButtons() {
   buttonContainer.appendChild(button1);
   buttonContainer.appendChild(document.createElement("br"));
 
-  var button2 = createButton("https://t3.ftcdn.net/jpg/01/58/34/10/360_F_158341076_1UVkU7KFK3f7yiTcuJswvZsqxQFPNv6F.jpg", 2, "yellow"); // Replace "path_to_image2.jpg" with the actual image path
+  var button2 = createButton("https://t3.ftcdn.net/jpg/01/58/34/10/360_F_158341076_1UVkU7KFK3f7yiTcuJswvZsqxQFPNv6F.jpg", 2, "yellow"); 
   buttonContainer.appendChild(button2);
   buttonContainer.appendChild(document.createElement("br"));
 
@@ -458,50 +430,48 @@ function createOverlayButtons() {
 
   container.appendChild(buttonContainer);
 
-  // Add Add Request button
   var addRequestButton = document.createElement("button");
   addRequestButton.textContent = "Add Request";
-  addRequestButton.style.backgroundColor = "blue"; // Adjust color as needed
-  addRequestButton.style.width = "80px"; // Adjust width as needed
-  addRequestButton.style.height = "50px"; // Adjust height as needed
+  addRequestButton.style.backgroundColor = "blue";
+  addRequestButton.style.width = "80px";
+  addRequestButton.style.height = "50px"; 
   addRequestButton.style.color = "white";
-  addRequestButton.style.borderRadius = "10px"; // Make the button slightly rounded
+  addRequestButton.style.borderRadius = "10px";
   addRequestButton.addEventListener("click", function() {
     showAddRequestPopup();
   });
   buttonContainer.appendChild(addRequestButton);
   buttonContainer.appendChild(document.createElement("br"));
 
-  // Add reset button
+  //reset button
   var resetButton = document.createElement("button");
   resetButton.textContent = "Reset";
   resetButton.id = "resetButton";
-  resetButton.style.backgroundColor = "green"; // Adjust color as needed
-  resetButton.style.width = "80px"; // Adjust width as needed
-  resetButton.style.height = "30px"; // Adjust height as needed
+  resetButton.style.backgroundColor = "green"; 
+  resetButton.style.width = "80px";
+  resetButton.style.height = "30px"; 
   resetButton.style.color = "white";
-  resetButton.style.borderRadius = "10px"; // Make the button slightly rounded
+  resetButton.style.borderRadius = "10px";
   resetButton.addEventListener("click", function() {
     if (network === null || nodes === null) {
       console.error('Network or nodes data is not available.');
       return;
     }
 
-    console.log('Nodes before resetting sizes:', nodes); // Log nodes before resetting sizes
+    console.log('Nodes before resetting sizes:', nodes); 
 
-    // Reset node sizes
+    //reset node sizes
     nodes.forEach(node => {
-      node.size = 25; // Set default node size
+      node.size = 25;
     });
 
-    console.log('Nodes after resetting sizes:', nodes); // Log nodes after resetting sizes
+    console.log('Nodes after resetting sizes:', nodes); 
 
-    // Update the network to reflect the changes in node sizes
     const updatedData = {
       nodes: nodes,
-      edges: network.body.data.edges // Retain existing edges data
+      edges: network.body.data.edges
     };
-    network.setData(updatedData); // Set updated data to the network
+    network.setData(updatedData); 
   });
   buttonContainer.appendChild(resetButton);
 
@@ -522,7 +492,6 @@ function showAddRequestPopup() {
   popupContainer.style.boxShadow = "0 2px 10px rgba(0, 0, 0, 0.2)";
   popupContainer.style.zIndex = "10000";
 
-  // Create input fields for request properties
   var toolNameLabel = document.createElement("label");
   toolNameLabel.textContent = "Tool Name:";
   var toolNameInput = document.createElement("input");
@@ -557,20 +526,18 @@ function showAddRequestPopup() {
   addButton.textContent = "Add Request";
 
   addButton.addEventListener("click", function () {
-    // Get the input values
     var toolName = toolNameInput.value;
     var description = descriptionInput.value;
     var imageUrl = imageUrlInput.value;
     var contentType = contentTypeInput.value;
     var referenceUrl = referenceUrlInput.value;
 
-    // Check if the required field "toolName" is provided
     if (!toolName) {
       alert('Tool Name is required');
       return;
     }
 
-    // Send a POST request to add the request to the "requests" table
+    //Send a POST request to add the request to the "requests" table
     fetch('/addRequest', {
       method: 'POST',
       headers: {
@@ -587,7 +554,6 @@ function showAddRequestPopup() {
       .then(response => {
         if (response.ok) {
           console.log('Request added successfully to the "requests" table');
-          // Optionally, you can close the popup or update the UI here
         } else {
           console.error('Error adding request to the "requests" table');
         }
@@ -606,7 +572,6 @@ function showAddRequestPopup() {
   });
 
   popupContainer.appendChild(closeButton);
-  // Append input fields and button to the popup container
   popupContainer.appendChild(toolNameLabel);
   popupContainer.appendChild(toolNameInput);
   popupContainer.appendChild(document.createElement("br"));
@@ -640,11 +605,9 @@ function createadminoverlay() {
   buttonContainer.style.right = "10px";
   buttonContainer.style.zIndex = "10000";
 
-  // Add hamburger menu
   var hamburgerMenu = document.createElement("div");
   hamburgerMenu.classList.add("hamburger-menu");
 
-  // Add menu icon
   var menuIcon = document.createElement("div");
   menuIcon.classList.add("menu-icon");
   menuIcon.addEventListener("click", function() {
@@ -652,22 +615,18 @@ function createadminoverlay() {
   });
   hamburgerMenu.appendChild(menuIcon);
 
-  // Add menu items
   var menuItems = document.createElement("div");
   menuItems.classList.add("menu-items");
 
-  // Add add node button inside menu
   var addNodeButton = createButton("Add Node", showAddNodePopup);
   menuItems.appendChild(addNodeButton);
 
   var addNodeRequestButton = createButton("Add Node via Request", showAddNodeRequestPopup);
   menuItems.appendChild(addNodeRequestButton);
 
-  // Add update node button inside menu
   var updateNodeButton = createButton("Update Node", showUpdateNodePopup);
   menuItems.appendChild(updateNodeButton);
 
-  // Add delete node button inside menu
   var deleteNodeButton = createButton("Delete Node", showDeleteNodePopup);
   menuItems.appendChild(deleteNodeButton);
 
@@ -704,7 +663,7 @@ function showAddNodeRequestPopup() {
   addButton.addEventListener("click", function() {
     var requestId = idInput.value;
   
-    // Make a fetch request to retrieve request attributes based on the request ID
+    //Make a fetch request to retrieve request attributes based on the request ID
     fetch(`/getRequestInfo/${requestId}`)
       .then(response => {
         if (!response.ok) {
@@ -713,10 +672,9 @@ function showAddNodeRequestPopup() {
         return response.json();
       })
       .then(data => {
-        // Extract the attributes from the retrieved data
         var { toolname, description, imageurl, contenttype, referenceurl } = data;
   
-        // Make a fetch request to add the request attributes to the main database
+        //Make a fetch request to add the request attributes to the main database
         fetch('/addRequest2', {
           method: 'POST',
           headers: {
@@ -733,7 +691,6 @@ function showAddNodeRequestPopup() {
         .then(response => {
           if (response.ok) {
             console.log('Request attributes added to the main database successfully');
-            // Optionally, you can update the UI or show a success message here
           } else {
             console.error('Error adding request attributes to the main database');
           }
@@ -753,7 +710,7 @@ function showAddNodeRequestPopup() {
   previewButton.addEventListener("click", function() {
     var requestId = idInput.value;
   
-    // Make a fetch request to retrieve request information
+    //Make a fetch request to retrieve request information
     fetch(`/getRequestInfo/${requestId}`)
       .then(response => {
         if (!response.ok) {
@@ -762,16 +719,13 @@ function showAddNodeRequestPopup() {
         return response.json();
       })
       .then(data => {
-        // Display the retrieved request information on the popup
         var popupContent = document.createElement("div");
         popupContent.classList.add("popup-info");
   
-        // Create and style elements for displaying information
         var heading = document.createElement("h3");
         heading.textContent = "Request Information";
         var infoList = document.createElement("ul");
   
-        // Add request attributes to the list
         var nameItem = document.createElement("li");
         nameItem.textContent = "Name: " + data.name;
         var urlItem = document.createElement("li");
@@ -781,17 +735,14 @@ function showAddNodeRequestPopup() {
         var descriptionItem = document.createElement("li");
         descriptionItem.textContent = "Description: " + data.description;
   
-        // Append items to the list
         infoList.appendChild(nameItem);
         infoList.appendChild(urlItem);
         infoList.appendChild(contentTypeItem);
         infoList.appendChild(descriptionItem);
   
-        // Append heading and list to the popup content
         popupContent.appendChild(heading);
         popupContent.appendChild(infoList);
   
-        // Append popup content to the popup container
         popupContainer.appendChild(popupContent);
       })
       .catch(error => {
@@ -836,7 +787,6 @@ function showAddNodePopup() {
   popupContainer.style.boxShadow = "0 2px 10px rgba(0, 0, 0, 0.2)";
   popupContainer.style.zIndex = "10000";
 
-  // Create input fields for node properties
   var nameLabel = document.createElement("label");
   nameLabel.textContent = "Tool Name:";
   var nameInput = document.createElement("input");
@@ -855,7 +805,6 @@ function showAddNodePopup() {
   var contentTypeLabel = document.createElement("label");
   contentTypeLabel.textContent = "Content Type:";
   var contentTypeInput = document.createElement("select");
-  // Add options for Content Type
   var options = ["Code", "Text", "Voice & Video", "Image"];
   options.forEach(option => {
     var opt = document.createElement("option");
@@ -872,7 +821,6 @@ function showAddNodePopup() {
   var licensingTypeLabel = document.createElement("label");
   licensingTypeLabel.textContent = "Licensing Type:";
   var licensingTypeInput = document.createElement("select");
-  // Add options for Licensing Type (true/false)
   var licensingOptions = ["true", "false"];
   licensingOptions.forEach(option => {
     var opt = document.createElement("option");
@@ -889,7 +837,6 @@ function showAddNodePopup() {
   addButton.textContent = "Add Node";
 
   addButton.addEventListener("click", function () {
-    // Get the input values
     var toolName = nameInput.value;
     var referenceURL = referenceInput.value;
     var layer = layerInput.value;
@@ -898,7 +845,7 @@ function showAddNodePopup() {
     var licensingType = licensingTypeInput.value;
     var toolDescription = descriptionInput.value;
 
-    // Send a POST request to add the node to the database
+    //Send a POST request to add the node to the database
     fetch('/database', {
       method: 'POST',
       headers: {
@@ -917,7 +864,6 @@ function showAddNodePopup() {
       .then(response => {
         if (response.ok) {
           console.log('Node added successfully to the database');
-          // Optionally, you can close the popup or update the UI here
         } else {
           console.error('Error adding node to the database');
         }
@@ -936,7 +882,6 @@ function showAddNodePopup() {
   });
 
   popupContainer.appendChild(closeButton);
-  // Append input fields and buttons to the popup container
   popupContainer.appendChild(nameLabel);
   popupContainer.appendChild(nameInput);
   popupContainer.appendChild(document.createElement("br"));
@@ -986,7 +931,6 @@ function showUpdateNodePopup() {
   popupContainer.style.boxShadow = "0 2px 10px rgba(0, 0, 0, 0.2)";
   popupContainer.style.zIndex = "10000";
 
-  // Create input fields for node properties
   var idLabel = document.createElement("label");
   idLabel.textContent = "Node ID:";
   var idInput = document.createElement("input");
@@ -1018,7 +962,6 @@ function showUpdateNodePopup() {
     contentTypeInput.add(opt);
   });
 
-  // Create input fields for other properties
   var primaryCategoryLabel = document.createElement("label");
   primaryCategoryLabel.textContent = "Primary Enterprise Category:";
   var primaryCategoryInput = document.createElement("input");
@@ -1086,7 +1029,6 @@ function showUpdateNodePopup() {
       .then(response => {
         if (response.ok) {
           console.log('Node updated successfully');
-          // Optionally, you can close the popup or update the UI here
         } else {
           console.error('Error updating node');
         }
@@ -1184,7 +1126,6 @@ function showDeleteNodePopup() {
     console.log('Sending DELETE request to delete node');
     console.log('Node ID:', id);
 
-    // Assuming a DELETE request to delete the node by ID or name
     fetch('/deleteNode', {
       method: 'DELETE',
       headers: {
@@ -1198,7 +1139,6 @@ function showDeleteNodePopup() {
       .then(response => {
         if (response.ok) {
           console.log('Node deleted successfully');
-          // Optionally, you can close the popup or update the UI here
         } else {
           console.error('Error deleting node');
         }
@@ -1232,11 +1172,8 @@ function createButton(label, onClickFunction) {
   button.textContent = label;
   button.classList.add("overlayButton");
   button.addEventListener("click", function() {
-    // Show popup on button click
     onClickFunction();
-    // Disable other buttons
     disableOtherButtons(button);
-    // Add dark overlay
     addDarkOverlay();
   });
   return button;
@@ -1263,7 +1200,6 @@ function addDarkOverlay() {
   overlay.classList.add("dark-overlay");
   document.body.appendChild(overlay);
 
-  // Close the popup and remove the dark overlay when clicking on the X button
   var closeButton = document.querySelector(".close");
   closeButton.addEventListener("click", function() {
     var popupContainer = document.querySelector(".popup-container");
@@ -1271,7 +1207,7 @@ function addDarkOverlay() {
       popupContainer.parentElement.removeChild(popupContainer);
     }
     document.body.removeChild(overlay);
-    enableAllButtons(); // Enable all buttons when closing the popup
+    enableAllButtons();
   });
 }
 
@@ -1281,7 +1217,6 @@ function searchNode() {
   var searchTerm = document.getElementById('searchInput').value.trim().toLowerCase();
   console.log('Search Term:', searchTerm);
 
-  // Get all nodes that match the search term
   var similarNodes = nodes.filter(node => node.label.toLowerCase().includes(searchTerm));
   console.log('Similar Nodes:', similarNodes);
 
@@ -1298,30 +1233,25 @@ function searchNode() {
       });
     });
 
-    // Show nodes that are in nodesToShow
     var nodesToHide = nodes.filter(node => !nodesToShow.includes(node));
     nodesToHide.forEach(node => {
       network.body.data.nodes.remove(node.id);
     });
 
-    // Add missing nodes
     nodesToShow.forEach(node => {
       if (!network.body.data.nodes.get(node.id)) {
         network.body.data.nodes.add(node);
       }
     });
 
-    // Update the network
     network.fit();
   } else {
-    // If no nodes match the search term, show all nodes
     nodes.forEach(node => {
       if (!network.body.data.nodes.get(node.id)) {
         network.body.data.nodes.add(node);
       }
     });
 
-    // Update the network
     network.fit();
   }
 }
@@ -1332,34 +1262,30 @@ function filterNodes(groupToFilter) {
     return;
   }
 
-  console.log('Nodes before filtering:', nodes); // Log nodes before filtering
+  console.log('Nodes before filtering:', nodes);
 
-  // Adjust sizes based on the group
   nodes.forEach(node => {
     if (node.group === groupToFilter) {
-      node.size = 60; // Increase size for nodes in the filtered group
+      node.size = 60; 
     } else {
-      node.size = 30; // Reset size for nodes not in the filtered group
+      node.size = 30;
     }
   });
 
-  console.log('Nodes after filtering:', nodes); // Log nodes after filtering
+  console.log('Nodes after filtering:', nodes); 
 
-  // Update the network to reflect the changes in node sizes
   const updatedData = {
     nodes: nodes,
-    edges: network.body.data.edges // Retain existing edges data
+    edges: network.body.data.edges 
   };
-  network.setData(updatedData); // Set updated data to the network
+  network.setData(updatedData);
 }
 
-// Call the function to create overlay buttons
 createOverlayButtons();
 createsearchoverlay();
 createadminoverlay();
 
 
-// Call the draw function when the window loads
 window.addEventListener("load", () => {
   draw();
 });
