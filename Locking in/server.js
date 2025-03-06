@@ -9,7 +9,7 @@ const pool = new Pool({
     user: 'postgres',
     host: 'localhost',
     database: 'bdai', // Specify the database name
-    password: 'pinguino04',
+    password: '',
     port: 5432, // Default PostgreSQL port
 });
 
